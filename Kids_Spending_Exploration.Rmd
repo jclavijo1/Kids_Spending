@@ -1,0 +1,77 @@
+---
+title: "Kids_Spending_Exploration"
+author: "Juan Clavijo"
+date: "10/3/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(janitor)
+library(hrbrthemes)
+kids <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-09-15/kids.csv')
+
+```
+
+## **Introduction**
+The United States Federal Government spends millions of dollars each year to support children and their families in their efforts to thrive. Areas of support include health, education, and recreation. By looking at comprehensive accounting of public spending on children from 2010 through 2016 based on the US Census Bureau’s Annual Survey of State and Local Government Finances and several federal and other non-census sources to capture state-by-state spending this study aims to compare spending across areas of support for children and their families across three states:
+
+- California 
+
+- Texas
+
+- Washington
+
+## **Summary of Spending**
+Across the three states, California spent the most in total support for children and their families with 1.7 billion between 2010 and 2016, followed by Texas with 961 million and Washington with 295 million.
+
+```{r}
+kid_spending_by_state2 <- kids %>% 
+  filter(state %in% c("Washington", "Texas", "California")) %>% 
+  filter(year %in% c("2010", "2011", "2012", "2013", "2014", "2015", "2016")) %>% 
+  group_by(state) %>% 
+  summarise(total_state = sum(raw, na.rm = TRUE))
+```
+```{r}
+kid_spending_by_state2 <- kid_spending_by_state2 %>%
+  mutate(total_state_mill = total_state/1000000) %>% 
+  mutate(total_state_mill_rounded = round(total_state_mill, digits = 1))
+ggplot(data = kid_spending_by_state2, 
+       mapping = aes(x = state, 
+                     y = total_state_mill,
+                     fill = state)) +
+  geom_col(show.legend = FALSE) +
+  geom_text(aes(label = total_state_mill_rounded),
+            vjust = 1.5,
+            color = "black") +
+  labs(title = "Total spending on children by state, in millions",
+       x = "",
+       y = "Millions of U.S. Dollars") +
+  scale_fill_brewer(palette = "Accent") +
+  theme_light()
+  
+
+```
+
+
+Across all states, the highest area of spending was Pre-K to 12 education with an average of 36 million
+
+```{r}
+kids %>% 
+  filter(state %in% c("Washington", "Texas", "California")) %>% 
+  filter(year %in% c("2010", "2011", "2012", "2013", "2014", "2015", "2016")) %>% 
+  group_by(variable) %>% 
+  summarise(total_state = mean(raw, na.rm = TRUE)) %>% 
+  arrange(desc(total_state))
+```
+
+```{r}
+kids %>% 
+  filter(state %in% c("Washington", "Texas", "California")) %>% 
+  filter(year %in% c("2016")) %>% 
+  select (variable, state, raw) %>% 
+  arrange(state, desc(raw)) %>% 
+  group_by(variable == "PK12ed")
+```
+
